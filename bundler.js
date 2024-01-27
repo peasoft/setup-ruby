@@ -180,7 +180,8 @@ export async function bundleInstall(gemfile, lockFile, platform, engine, rubyVer
   const gem = path.join(rubyPrefix, 'bin', 'gem');
   await exec.exec(gem, ['env', 'user_gemhome'], options);
   const gemHomeSuffix = gemHome.trim().split(path.sep).slice(-2);
-  common.setupPath([path.join(bundleCachePath, ...gemHomeSuffix, 'bin')]);
+  console.log(gemHomeSuffix);
+  common.setupPath([path.join(bundleCachePath, ...gemHomeSuffix, 'bin')], true);
 
   await exec.exec('bundle', ['config', '--local', 'path', bundleCachePath], envOptions)
 

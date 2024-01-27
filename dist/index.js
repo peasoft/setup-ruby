@@ -194,7 +194,8 @@ async function bundleInstall(gemfile, lockFile, platform, engine, rubyVersion, b
   const gem = path.join(rubyPrefix, 'bin', 'gem');
   await exec.exec(gem, ['env', 'user_gemhome'], options);
   const gemHomeSuffix = gemHome.trim().split(path.sep).slice(-2);
-  common.setupPath([path.join(bundleCachePath, ...gemHomeSuffix, 'bin')]);
+  console.log(gemHomeSuffix);
+  common.setupPath([path.join(bundleCachePath, ...gemHomeSuffix, 'bin')], true);
 
   await exec.exec('bundle', ['config', '--local', 'path', bundleCachePath], envOptions)
 
@@ -694,7 +695,7 @@ function rubyIsUCRT(path) {
       dirent.isFile() && dirent.name.match(/^x64-(ucrt|vcruntime\d{3})-ruby\d{3}\.dll$/)))
 }
 
-function setupPath(newPathEntries) {
+function setupPath(newPathEntries, noClean=false) {
   let msys2Type = null
   const envPath = windows ? 'Path' : 'PATH'
   const originalPath = process.env[envPath].split(path.delimiter)
@@ -702,17 +703,20 @@ function setupPath(newPathEntries) {
 
   core.startGroup(`Modifying ${envPath}`)
 
-  // First remove the conflicting path entries
-  if (cleanPath.length !== originalPath.length) {
-    console.log(`Entries removed from ${envPath} to avoid conflicts with default Ruby:`)
-    for (const entry of originalPath) {
-      if (!cleanPath.includes(entry)) {
-        console.log(`  ${entry}`)
+  if (noClean){
+    console.log(`Skip cleaning ${envPath}`)
+  }
+  else {
+    // First remove the conflicting path entries
+    if (cleanPath.length !== originalPath.length) {
+      console.log(`Entries removed from ${envPath} to avoid conflicts with default Ruby:`)
+      for (const entry of originalPath) {
+        if (!cleanPath.includes(entry)) {
+          console.log(`  ${entry}`)
+        }
       }
+      core.exportVariable(envPath, cleanPath.join(path.delimiter));
     }
-    let nowPath = cleanPath.join(path.delimiter);
-    core.exportVariable(envPath, nowPath);
-    process.env[envPath] = nowPath; // We need to setupPath more than once
   }
 
   // Then add new path entries using core.addPath()

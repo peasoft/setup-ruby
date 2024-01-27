@@ -320,7 +320,7 @@ function rubyIsUCRT(path) {
       dirent.isFile() && dirent.name.match(/^x64-(ucrt|vcruntime\d{3})-ruby\d{3}\.dll$/)))
 }
 
-export function setupPath(newPathEntries) {
+export function setupPath(newPathEntries, noClean=false) {
   let msys2Type = null
   const envPath = windows ? 'Path' : 'PATH'
   const originalPath = process.env[envPath].split(path.delimiter)
@@ -328,17 +328,20 @@ export function setupPath(newPathEntries) {
 
   core.startGroup(`Modifying ${envPath}`)
 
-  // First remove the conflicting path entries
-  if (cleanPath.length !== originalPath.length) {
-    console.log(`Entries removed from ${envPath} to avoid conflicts with default Ruby:`)
-    for (const entry of originalPath) {
-      if (!cleanPath.includes(entry)) {
-        console.log(`  ${entry}`)
+  if (noClean){
+    console.log(`Skip cleaning ${envPath}`)
+  }
+  else {
+    // First remove the conflicting path entries
+    if (cleanPath.length !== originalPath.length) {
+      console.log(`Entries removed from ${envPath} to avoid conflicts with default Ruby:`)
+      for (const entry of originalPath) {
+        if (!cleanPath.includes(entry)) {
+          console.log(`  ${entry}`)
+        }
       }
+      core.exportVariable(envPath, cleanPath.join(path.delimiter));
     }
-    let nowPath = cleanPath.join(path.delimiter);
-    core.exportVariable(envPath, nowPath);
-    process.env[envPath] = nowPath; // We need to setupPath more than once
   }
 
   // Then add new path entries using core.addPath()
