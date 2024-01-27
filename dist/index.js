@@ -182,6 +182,20 @@ async function bundleInstall(gemfile, lockFile, platform, engine, rubyVersion, b
   // An absolute path, so it is reliably under $PWD/vendor/bundle, and not relative to the gemfile's directory
   const bundleCachePath = path.join(process.cwd(), cachePath)
 
+  // Add bundleCachePath/$ENGINE/$VERSION/bin to $PATH so that you can run `jekyll` and so on.
+  let gemHome = '';
+  const options = {
+    listeners: {
+      stdout: (data) => {
+        gemHome += data.toString();
+      }
+    }
+  };
+  const gem = path.join(rubyPrefix, 'bin', 'gem');
+  await exec.exec(gem, ['env', 'user_gemhome'], options);
+  const gemHomeSuffix = gemHome.trim().split(path.delimiter).slice(-2);
+  common.setupPath([path.join(bundleCachePath, ...gemHomeSuffix, 'bin')]);
+
   await exec.exec('bundle', ['config', '--local', 'path', bundleCachePath], envOptions)
 
   if (fs.existsSync(lockFile)) {
