@@ -193,7 +193,7 @@ async function bundleInstall(gemfile, lockFile, platform, engine, rubyVersion, b
   };
   const gem = path.join(rubyPrefix, 'bin', 'gem');
   await exec.exec(gem, ['env', 'user_gemhome'], options);
-  const gemHomeSuffix = gemHome.trim().split(path.delimiter).slice(-2);
+  const gemHomeSuffix = gemHome.trim().split(path.sep).slice(-2);
   common.setupPath([path.join(bundleCachePath, ...gemHomeSuffix, 'bin')]);
 
   await exec.exec('bundle', ['config', '--local', 'path', bundleCachePath], envOptions)
