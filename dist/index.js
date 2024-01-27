@@ -710,7 +710,9 @@ function setupPath(newPathEntries) {
         console.log(`  ${entry}`)
       }
     }
-    core.exportVariable(envPath, cleanPath.join(path.delimiter))
+    let nowPath = cleanPath.join(path.delimiter);
+    core.exportVariable(envPath, nowPath);
+    process.env[envPath] = nowPath; // We need to setupPath more than once
   }
 
   // Then add new path entries using core.addPath()
